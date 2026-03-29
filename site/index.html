@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repository Statistics Dashboard</title>
+  <style>
+    :root {
+      --cream: #f5f0e8;
+      --card-bg: #faf7f2;
+      --orange: #c95d2e;
+      --mustard: #d4a03c;
+      --gold: #e8b923;
+      --brown: #3d2c29;
+      --brown-light: #5d4c49;
+      --shadow: rgba(61, 44, 41, 0.08);
+      --shadow-hover: rgba(61, 44, 41, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--cream);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--brown);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Header */
+    .dashboard-header {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--brown);
+    }
+
+    .header-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      align-items: flex-end;
+    }
+
+    .header-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .header-stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    .header-stat-label {
+      font-size: 0.85rem;
+      color: var(--brown-light);
+    }
+
+    .header-sparkline {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .header-sparkline .sparkline {
+      width: 100%;
+      height: 40px;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    @media (max-width: 900px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card */
+    .card-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 8px var(--shadow);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px var(--shadow-hover);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(61, 44, 41, 0.1);
+    }
+
+    .repo-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--brown);
+    }
+
+    .repo-stats {
+      display: flex;
+      gap: 12px;
+    }
+
+    .stat {
+      font-size: 0.9rem;
+      color: var(--brown-light);
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .chart-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .chart-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--brown-light);
+    }
+
+    .chart-label .period {
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    .sparkline {
+      width: 100%;
+      height: 32px;
+    }
+
+    .chart-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+
+    .views {
+      color: var(--orange);
+    }
+
+    .clones {
+      color: var(--mustard);
+    }
+
+    .growth.positive {
+      color: #2e8b57;
+    }
+
+    .growth.negative {
+      color: var(--orange);
+    }
+
+    .neutral {
+      color: #999;
+    }
+
+    /* Crickets Section */
+    .crickets-section {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px dashed rgba(61, 44, 41, 0.2);
+    }
+
+    .crickets-header {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--brown-light);
+      margin-bottom: 16px;
+      opacity: 0.7;
+    }
+
+    .crickets-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .crickets-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .crickets-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .cricket-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .cricket-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 1px 4px var(--shadow);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      opacity: 0.75;
+    }
+
+    .cricket-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px var(--shadow-hover);
+      opacity: 1;
+    }
+
+    .cricket-name {
+      flex: 1;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--brown);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cricket-stats {
+      font-size: 0.8rem;
+      color: var(--brown-light);
+    }
+
+    .cricket-arrow {
+      color: var(--orange);
+      opacity: 0.5;
+      transition: opacity 0.15s ease;
+    }
+
+    .cricket-card:hover .cricket-arrow {
+      opacity: 1;
+    }
+
+    /* Footer */
+    .dashboard-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: var(--brown-light);
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="dashboard-header">
+      <h1 class="header-title">Repository Statistics</h1>
+      <div class="header-stats">
+        <div class="header-stat">
+          <span class="header-stat-value">0</span>
+          <span class="header-stat-label">total stars</span>
+        </div>
+        <div class="header-stat">
+          <span class="header-stat-value">0</span>
+          <span class="header-stat-label">total forks</span>
+        </div>
+        <div class="header-stat">
+          <span class="header-stat-value">0</span>
+          <span class="header-stat-label">views (14d)</span>
+        </div>
+        <div class="header-stat">
+          <span class="header-stat-value">120</span>
+          <span class="header-stat-label">clones (14d)</span>
+        </div>
+        <div class="header-sparkline">
+          <span class="header-stat-label">traffic trend</span>
+          <svg viewBox="0 0 200 40" class="sparkline"><polyline points="0.0,36.0 15.4,36.0 30.8,36.0 46.2,36.0 61.5,36.0 76.9,36.0 92.3,36.0 107.7,36.0 123.1,36.0 138.5,36.0 153.8,36.0 169.2,36.0 184.6,36.0 200.0,36.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,34.1 15.4,33.2 30.8,32.2 46.2,34.1 61.5,33.2 76.9,32.2 92.3,10.6 107.7,17.2 123.1,27.5 138.5,34.1 153.8,34.1 169.2,28.5 184.6,4.0 200.0,36.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      
+    <a href="agent-commit-command/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">agent-commit-command</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,24.6 80.0,24.6 90.0,28.0 100.0,28.0 110.0,28.0 120.0,4.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 9</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="f/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">f</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,16.0 50.0,28.0 60.0,28.0 70.0,4.0 80.0,16.0 90.0,28.0 100.0,16.0 110.0,28.0 120.0,16.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 6</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="aics/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">aics</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,25.3 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,12.0 120.0,4.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 16</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="gitoverit/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">gitoverit</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,24.6 60.0,4.0 70.0,21.1 80.0,21.1 90.0,28.0 100.0,28.0 110.0,28.0 120.0,17.7" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 15</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="run-module/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">run-module</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,4.0 70.0,25.8 80.0,23.6 90.0,28.0 100.0,28.0 110.0,25.8 120.0,23.6" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 17</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="trache/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">trache</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,24.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,24.0 60.0,4.0 70.0,20.0 80.0,20.0 90.0,28.0 100.0,24.0 110.0,28.0 120.0,20.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 15</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="pangocairo/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">pangocairo</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,4.0 60.0,28.0 70.0,4.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,4.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 3</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="bbcp-old/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">bbcp-old</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,16.0 10.0,16.0 20.0,16.0 30.0,4.0 40.0,16.0 50.0,16.0 60.0,4.0 70.0,4.0 80.0,16.0 90.0,16.0 100.0,28.0 110.0,16.0 120.0,16.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 15</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="c7fetch-py/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">c7fetch-py</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,4.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,16.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 3</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="rust-strings-cli/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">rust-strings-cli</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,28.0 20.0,16.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,4.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,16.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 4</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="EditPadToolHelper/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">EditPadToolHelper</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,20.0 20.0,20.0 30.0,28.0 40.0,20.0 50.0,28.0 60.0,28.0 70.0,12.0 80.0,28.0 90.0,20.0 100.0,28.0 110.0,28.0 120.0,4.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 9</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+
+    <a href="TabuCopy/" class="card-link">
+      <div class="card">
+        <div class="card-header">
+          <span class="repo-name">TabuCopy</span>
+          <span class="repo-stats">
+            <span class="stat">⭐ 0</span>
+            <span class="stat">🍴 0</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div class="chart-label">Traffic <span class="period">(14d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><polyline points="0.0,28.0 10.0,28.0 20.0,28.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,28.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,28.0" fill="none" stroke="#c95d2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0.0,28.0 10.0,4.0 20.0,4.0 30.0,28.0 40.0,28.0 50.0,28.0 60.0,28.0 70.0,4.0 80.0,28.0 90.0,28.0 100.0,28.0 110.0,28.0 120.0,4.0" fill="none" stroke="#d4a03c" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="chart-stats">
+              <span class="views">👁 0</span>
+              <span class="clones">📋 4</span>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-label">Growth <span class="period">(90d)</span></div>
+            <svg viewBox="0 0 120 32" class="sparkline"><text x="60" y="20" text-anchor="middle" fill="#999" font-size="10">no data</text></svg>
+            <div class="chart-stats">
+              <span class="neutral">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+    
+    </div>
+
+    
+    <div class="crickets-section">
+      <h2 class="crickets-header">🦗 Crickets</h2>
+      <div class="crickets-grid">
+        
+    <a href="mevanlc-repo-stats/" class="cricket-link">
+      <div class="cricket-card">
+        <span class="cricket-name">mevanlc-repo-stats</span>
+        <span class="cricket-stats">⭐ 0</span>
+        <span class="cricket-arrow">→</span>
+      </div>
+    </a>
+    
+
+    <a href="gcp-gce/" class="cricket-link">
+      <div class="cricket-card">
+        <span class="cricket-name">gcp-gce</span>
+        <span class="cricket-stats">⭐ 0</span>
+        <span class="cricket-arrow">→</span>
+      </div>
+    </a>
+    
+
+    <a href="sandbox-nodejs/" class="cricket-link">
+      <div class="cricket-card">
+        <span class="cricket-name">sandbox-nodejs</span>
+        <span class="cricket-stats">⭐ 0</span>
+        <span class="cricket-arrow">→</span>
+      </div>
+    </a>
+    
+      </div>
+    </div>
+    
+
+    <div class="dashboard-footer">
+      Last updated: 2026-03-29 15:17 UTC · 15 repositories
+    </div>
+  </div>
+</body>
+</html>
+
