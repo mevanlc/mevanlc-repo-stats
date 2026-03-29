@@ -1,0 +1,33 @@
+name: my-repo-stats-ghrs
+concurrency: fetch-repository-stats
+
+on:
+  schedule:
+    - cron: "0 10 * * 6"
+  workflow_dispatch:
+
+jobs:
+  fetch-and-process-repos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch owned non-fork public repos
+        id: fetch-repos
+        env:
+          GH_TOKEN: ${{ secrets.ghrs_github_api_token }}
+        run: |
+          set -x -e
+          echo 'Fetching repositories...'
+          REPOS=$(gh repo list --limit 1000 --json nameWithOwner,visibility,isFork -q '[.[] | select(.visibility=="PUBLIC" and .isFork==false) | .nameWithOwner]')
+          echo "repos=$REPOS" >> "$GITHUB_OUTPUT"
+          echo "Found repositories:"
+          echo "$REPOS" | jq -r '.[]'
+          echo "Total count: $(echo "$REPOS" | jq -r '. | length')"
+
+      - name: Run github-repo-stats for all repositories
+        uses: mike-clark-8192/github-repo-stats@main
+        with:
+          repositories: ${{ steps.fetch-repos.outputs.repos }}
+          ghtoken: ${{ secrets.ghrs_github_api_token }}
+          databranch: main
+          ghpagesprefix: https://mevanlc.github.io/mevanlc-repo-stats
+          ghpagesdirectory: site

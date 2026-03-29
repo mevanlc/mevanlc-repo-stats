@@ -1,0 +1,17 @@
+name: Test GitHub CLI with GH_TOKEN
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-gh-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check GitHub CLI installation
+        run: gh --version
+
+      - name: List Public Non-Fork Repositories
+        env:
+          GH_TOKEN: ${{ secrets.ghrs_github_api_token }}
+        run: |
+          gh repo list --json nameWithOwner,visibility,isFork -q '[.[] | select(.visibility=="PUBLIC" and .isFork==false) | .nameWithOwner]'
