@@ -1,5 +1,5 @@
 % Statistics for mevanlc/pangocairo
-% Generated for [mevanlc/pangocairo](https://github.com/mevanlc/pangocairo) with [jgehrcke/github-repo-stats](https://github.com/jgehrcke/github-repo-stats) at 2026-07-11 10:30 UTC.
+% Generated for [mevanlc/pangocairo](https://github.com/mevanlc/pangocairo) with [jgehrcke/github-repo-stats](https://github.com/jgehrcke/github-repo-stats) at 2026-07-18 10:32 UTC.
 
 
 ## Views
